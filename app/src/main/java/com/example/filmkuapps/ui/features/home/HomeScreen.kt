@@ -1,6 +1,5 @@
 package com.example.filmkuapps.ui.features.home
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,6 +13,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
@@ -36,26 +37,33 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.filmkuapps.R
+import coil3.compose.AsyncImage
+import com.example.filmkuapps.ui.common.components.shimmerEffect
 import com.example.filmkuapps.ui.common.theme.Poppins
 import com.example.filmkuapps.ui.common.theme.PrimaryDark
 import com.example.filmkuapps.ui.nav.AppScreen
 
 @Composable
-fun HomeScreen(navController: NavController) {
+fun HomeScreen(navController: NavController, viewModel: MovieViewModel = viewModel()) {
     var searchQuery by remember { mutableStateOf("") }
     var selectedTabIndex by remember { mutableStateOf(0) }
-    val tabs = listOf("Now Playing", "Upcoming", "Top Rated", "Popular")
+    val tabs = listOf("Now Playing", "Upcoming", "Top Rated")
+
+    val popularMoviesState by viewModel.popularMoviesState.collectAsStateWithLifecycle()
+    val nowPlayingMoviesState by viewModel.nowPlayingState.collectAsStateWithLifecycle()
+    val upcomingMoviesState by viewModel.upcomingMoviesState.collectAsStateWithLifecycle()
+    val topRatedMoviesState by viewModel.topRatedMoviesState.collectAsStateWithLifecycle()
 
     Scaffold(
         containerColor = PrimaryDark,
-    ) { _ ->
+    ) { innerPadding ->
         Column(
         ) {
             Text(
@@ -97,42 +105,84 @@ fun HomeScreen(navController: NavController) {
             )
 
             // Most Popular Movies List Horizontal
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.padding(top = 20.dp, start = 12.dp)
-            ) {
-                items(5) { index ->
-                    val number = (index + 1).toString()
-                    val filmId = (index + 1).toString()
+            when (val state = popularMoviesState) {
+                is MovieUiState.Loading -> {
+                    // Tampilkan Loading Indicator
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier.padding(top = 20.dp, start = 12.dp),
+                        userScrollEnabled = false // Matikan scroll saat sedang loading
+                    ) {
+                        items(5) { // Buat 5 dummy item
+                            Box(
+                                modifier = Modifier
+                                    .padding(bottom = 30.dp, start = 10.dp)
+                                    .width(144.dp)
+                                    .height(210.dp)
+                                    .shimmerEffect() // <-- Panggil modifier di sini!
+                            )
+                        }
+                    }
+                }
+                is MovieUiState.Success -> {
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier.padding(top = 20.dp, start = 12.dp)
+                    ) {
+                        // Gunakan itemsIndexed untuk mendapatkan index dan data movie
+                        // Ambil 10 data teratas saja (opsional) menggunakan .take(10)
+
+                        itemsIndexed(state.movies.take(5)) { index, movie ->
+                            val number = (index + 1).toString()
+                            val filmId = movie.id.toString()
+
+                            Box(
+                                modifier = Modifier
+                                    .padding(bottom = 30.dp, start = 10.dp)
+                                    .clickable {
+                                        navController.navigate(AppScreen.detailRoute(filmId))
+                                    }
+                            ) {
+                                AsyncImage(
+                                    model = movie.posterUrl,
+                                    contentDescription = movie.title,
+                                    modifier = Modifier
+                                        .width(144.dp)
+                                        .height(210.dp)
+                                        .clip(RoundedCornerShape(16.dp)),
+                                    contentScale = ContentScale.Crop
+                                )
+                                // Fill Layer (Primary Dark)
+                                Text(
+                                    text = number,
+                                    fontSize = 96.sp,
+                                    color = Color(0xFF8e9094),
+                                    fontWeight = FontWeight.SemiBold,
+                                    modifier = Modifier
+                                        .align(Alignment.BottomStart)
+                                        .offset(x = (-10).dp, y = 50.dp)
+                                )
+                            }
+                        }
+
+
+                    }
+                }
+                is MovieUiState.Error -> {
+                    // Tampilkan pesan error
                     Box(
                         modifier = Modifier
-                            .padding(bottom = 30.dp, start = 10.dp)
-                            .clickable {
-                            navController.navigate(AppScreen.detailRoute(filmId))
-                        }
+                            .fillMaxWidth()
+                            .height(240.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.img_cover),
-                            contentDescription = "Movie Image",
-                            modifier = Modifier
-                                .width(144.dp)
-                                .height(210.dp)
-                                .clip(RoundedCornerShape(16.dp)),
-                            contentScale = ContentScale.Crop
-                        )
-                        // Fill Layer (Primary Dark)
-                        Text(
-                            text = number,
-                            fontSize = 96.sp,
-                            color = Color(0xFF8e9094),
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier
-                                .align(Alignment.BottomStart)
-                                .offset(x = (-10).dp, y = 50.dp)
-                        )
+                        Text(text = state.message, color = Color.Red)
                     }
                 }
             }
+
+
+
 
             // TAB
             ScrollableTabRow(
@@ -172,32 +222,201 @@ fun HomeScreen(navController: NavController) {
 
             when (selectedTabIndex) {
                 0 -> {
-                    LazyVerticalGrid(
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp)
-                            .padding(top = 16.dp),
-                        columns = GridCells.Fixed(3),
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    ) {
-                        items(6) { index ->
-                            val  filmId = (index + 1).toString()
-                            Image(
-                                painter = painterResource(id = R.drawable.img_cover),
-                                contentDescription = "Movie Image",
+                    when (val state = nowPlayingMoviesState) {
+                        is MovieUiState.Loading -> {
+                            LazyVerticalGrid (
                                 modifier = Modifier
-                                    .width(100.dp)
-                                    .height(145.dp)
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .clickable {
-                                        navController.navigate(AppScreen.detailRoute(filmId))
-                                    },
-                                contentScale = ContentScale.Crop
-                            )
+                                    .padding(horizontal = 16.dp)
+                                    .padding(top = 16.dp),
+                                columns = GridCells.Fixed(3),
+                                verticalArrangement = Arrangement.spacedBy(16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            ) {
+                                items(5) { // Buat 5 dummy item
+                                    Box(
+                                        modifier = Modifier
+                                            .padding(bottom = 30.dp, start = 10.dp)
+                                            .width(100.dp)
+                                            .height(145.dp)
+                                            .shimmerEffect() // <-- Panggil modifier di sini!
+                                    )
+                                }
+                            }
+                        }
+                        is MovieUiState.Success -> {
+                            LazyVerticalGrid(
+                                modifier = Modifier
+                                    .padding(horizontal = 16.dp)
+                                    .padding(top = 16.dp),
+                                columns = GridCells.Fixed(3),
+                                verticalArrangement = Arrangement.spacedBy(16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            ) {
+                                itemsIndexed(state.movies.take(10)) { index, movie ->
+                                    val number = (index + 1).toString()
+                                    val filmId = movie.id.toString()
+
+                                    AsyncImage(
+                                        model = movie.posterUrl,
+                                        contentDescription = movie.title,
+                                        modifier = Modifier
+                                            .width(100.dp)
+                                            .height(145.dp)
+                                            .clip(RoundedCornerShape(16.dp))
+                                            .clickable {
+                                                navController.navigate(AppScreen.detailRoute(filmId))
+                                            },
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
+
+
+
+                            }
+                        }
+                        is MovieUiState.Error -> {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(240.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(text = state.message, color = Color.Red)
+                            }
                         }
                     }
-                }
 
+                }
+                1 -> {
+                    when (val state = upcomingMoviesState) {
+                        is MovieUiState.Loading -> {
+                            LazyVerticalGrid (
+                                modifier = Modifier
+                                    .padding(horizontal = 16.dp)
+                                    .padding(top = 16.dp),
+                                columns = GridCells.Fixed(3),
+                                verticalArrangement = Arrangement.spacedBy(16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            ) {
+                                items(5) { // Buat 5 dummy item
+                                    Box(
+                                        modifier = Modifier
+                                            .padding(bottom = 30.dp, start = 10.dp)
+                                            .width(100.dp)
+                                            .height(145.dp)
+                                            .shimmerEffect() // <-- Panggil modifier di sini!
+                                    )
+                                }
+                            }
+                        }
+                        is MovieUiState.Success -> {
+                            LazyVerticalGrid(
+                                modifier = Modifier
+                                    .padding(horizontal = 16.dp)
+                                    .padding(top = 16.dp),
+                                columns = GridCells.Fixed(3),
+                                verticalArrangement = Arrangement.spacedBy(16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            ) {
+                                itemsIndexed(state.movies.take(10)) { index, movie ->
+                                    val filmId = movie.id.toString()
+
+                                    AsyncImage(
+                                        model = movie.posterUrl,
+                                        contentDescription = movie.title,
+                                        modifier = Modifier
+                                            .width(100.dp)
+                                            .height(145.dp)
+                                            .clip(RoundedCornerShape(16.dp))
+                                            .clickable {
+                                                navController.navigate(AppScreen.detailRoute(filmId))
+                                            },
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
+
+
+
+                            }
+                        }
+                        is MovieUiState.Error -> {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(240.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(text = state.message, color = Color.Red)
+                            }
+                        }
+                    }
+
+                }
+                2 -> {
+                    when (val state = topRatedMoviesState) {
+                        is MovieUiState.Loading -> {
+                            LazyVerticalGrid (
+                                modifier = Modifier
+                                    .padding(horizontal = 16.dp)
+                                    .padding(top = 16.dp),
+                                columns = GridCells.Fixed(3),
+                                verticalArrangement = Arrangement.spacedBy(16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            ) {
+                                items(5) { // Buat 5 dummy item
+                                    Box(
+                                        modifier = Modifier
+                                            .padding(bottom = 30.dp, start = 10.dp)
+                                            .width(100.dp)
+                                            .height(145.dp)
+                                            .shimmerEffect() // <-- Panggil modifier di sini!
+                                    )
+                                }
+                            }
+                        }
+                        is MovieUiState.Success -> {
+                            LazyVerticalGrid(
+                                modifier = Modifier
+                                    .padding(horizontal = 16.dp)
+                                    .padding(top = 16.dp),
+                                columns = GridCells.Fixed(3),
+                                verticalArrangement = Arrangement.spacedBy(16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            ) {
+                                itemsIndexed(state.movies.take(10)) { index, movie ->
+                                    val filmId = movie.id.toString()
+
+                                    AsyncImage(
+                                        model = movie.posterUrl,
+                                        contentDescription = movie.title,
+                                        modifier = Modifier
+                                            .width(100.dp)
+                                            .height(145.dp)
+                                            .clip(RoundedCornerShape(16.dp))
+                                            .clickable {
+                                                navController.navigate(AppScreen.detailRoute(filmId))
+                                            },
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
+
+
+
+                            }
+                        }
+                        is MovieUiState.Error -> {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(240.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(text = state.message, color = Color.Red)
+                            }
+                        }
+                    }
+
+                }
                 else -> {
                     Box(
                         modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
