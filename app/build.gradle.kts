@@ -52,6 +52,22 @@ dependencies {
     implementation(libs.androidx.compose.navigation)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.ui)
+
+    // Retrofit & Gson Converter
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+
+    // ViewModel Compose & Lifecycle
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+
+    // Image Loading
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
+
+    // OkHttp Logging Interceptor
+    implementation(libs.logging.interceptor)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -59,4 +75,6 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+
 }
