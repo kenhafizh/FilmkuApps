@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridCells.*
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -179,6 +180,10 @@ fun HomeScreen(navController: NavController, viewModel: MovieViewModel = viewMod
                         Text(text = state.message, color = Color.Red)
                     }
                 }
+
+                is DetailMovieState.Error -> TODO()
+                DetailMovieState.Loading -> TODO()
+                is DetailMovieState.Success -> TODO()
             }
 
 
@@ -228,7 +233,7 @@ fun HomeScreen(navController: NavController, viewModel: MovieViewModel = viewMod
                                 modifier = Modifier
                                     .padding(horizontal = 16.dp)
                                     .padding(top = 16.dp),
-                                columns = GridCells.Fixed(3),
+                                columns = Fixed(3),
                                 verticalArrangement = Arrangement.spacedBy(16.dp),
                                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                             ) {
@@ -248,7 +253,7 @@ fun HomeScreen(navController: NavController, viewModel: MovieViewModel = viewMod
                                 modifier = Modifier
                                     .padding(horizontal = 16.dp)
                                     .padding(top = 16.dp),
-                                columns = GridCells.Fixed(3),
+                                columns = Fixed(3),
                                 verticalArrangement = Arrangement.spacedBy(16.dp),
                                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                             ) {
@@ -284,6 +289,10 @@ fun HomeScreen(navController: NavController, viewModel: MovieViewModel = viewMod
                                 Text(text = state.message, color = Color.Red)
                             }
                         }
+
+                        is DetailMovieState.Error -> TODO()
+                        DetailMovieState.Loading -> TODO()
+                        is DetailMovieState.Success -> TODO()
                     }
 
                 }
@@ -294,7 +303,7 @@ fun HomeScreen(navController: NavController, viewModel: MovieViewModel = viewMod
                                 modifier = Modifier
                                     .padding(horizontal = 16.dp)
                                     .padding(top = 16.dp),
-                                columns = GridCells.Fixed(3),
+                                columns = Fixed(3),
                                 verticalArrangement = Arrangement.spacedBy(16.dp),
                                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                             ) {
@@ -314,7 +323,7 @@ fun HomeScreen(navController: NavController, viewModel: MovieViewModel = viewMod
                                 modifier = Modifier
                                     .padding(horizontal = 16.dp)
                                     .padding(top = 16.dp),
-                                columns = GridCells.Fixed(3),
+                                columns = Fixed(3),
                                 verticalArrangement = Arrangement.spacedBy(16.dp),
                                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                             ) {
@@ -349,6 +358,10 @@ fun HomeScreen(navController: NavController, viewModel: MovieViewModel = viewMod
                                 Text(text = state.message, color = Color.Red)
                             }
                         }
+
+                        is DetailMovieState.Error -> TODO()
+                        DetailMovieState.Loading -> TODO()
+                        is DetailMovieState.Success -> TODO()
                     }
 
                 }
@@ -359,7 +372,7 @@ fun HomeScreen(navController: NavController, viewModel: MovieViewModel = viewMod
                                 modifier = Modifier
                                     .padding(horizontal = 16.dp)
                                     .padding(top = 16.dp),
-                                columns = GridCells.Fixed(3),
+                                columns = Fixed(3),
                                 verticalArrangement = Arrangement.spacedBy(16.dp),
                                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                             ) {
@@ -379,7 +392,7 @@ fun HomeScreen(navController: NavController, viewModel: MovieViewModel = viewMod
                                 modifier = Modifier
                                     .padding(horizontal = 16.dp)
                                     .padding(top = 16.dp),
-                                columns = GridCells.Fixed(3),
+                                columns = Fixed(3),
                                 verticalArrangement = Arrangement.spacedBy(16.dp),
                                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                             ) {
@@ -414,6 +427,10 @@ fun HomeScreen(navController: NavController, viewModel: MovieViewModel = viewMod
                                 Text(text = state.message, color = Color.Red)
                             }
                         }
+
+                        is DetailMovieState.Error -> TODO()
+                        DetailMovieState.Loading -> TODO()
+                        is DetailMovieState.Success -> TODO()
                     }
 
                 }
