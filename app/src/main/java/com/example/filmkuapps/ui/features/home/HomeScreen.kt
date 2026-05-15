@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridCells.*
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
@@ -49,6 +48,7 @@ import coil3.compose.AsyncImage
 import com.example.filmkuapps.ui.common.components.shimmerEffect
 import com.example.filmkuapps.ui.common.theme.Poppins
 import com.example.filmkuapps.ui.common.theme.PrimaryDark
+import com.example.filmkuapps.ui.features.detail.DetailMovieState
 import com.example.filmkuapps.ui.nav.AppScreen
 
 @Composable

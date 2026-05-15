@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -38,7 +37,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -51,29 +50,22 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import com.example.filmkuapps.R
 import com.example.filmkuapps.domain.model.MovieDetail
 import com.example.filmkuapps.ui.common.theme.Poppins
 import com.example.filmkuapps.ui.common.theme.PrimaryDark
-import com.example.filmkuapps.ui.features.home.DetailMovieState
-import com.example.filmkuapps.ui.features.home.DetailMoviewViewModel
+import com.example.filmkuapps.ui.features.home.MovieViewModel
 import com.example.filmkuapps.ui.nav.AppScreen
 
 @Composable
-fun DetailScreen(filmId: String, navController: NavHostController) {
-    var selectedTabIndex by remember { mutableStateOf(1) } // Default to "Reviews" to match screenshot
+fun DetailScreen(navController: NavHostController, viewModel: DetailMoviewViewModel = viewModel()) {
+    var selectedTabIndex by remember { mutableIntStateOf(0) } // Default to "Reviews" to match screenshot
     val tabs = listOf("About Movie", "Reviews", "Cast")
-
-    val viewModel = remember { DetailMoviewViewModel() }
     val detailState by viewModel.detailMoviesState.collectAsState()
-    LaunchedEffect(filmId) {
-        val movieId = filmId.toIntOrNull() ?: 0
-        if (movieId > 0) {
-            viewModel.fetchMovieDetail(movieId)
-        }
-    }
 
     Scaffold(
         containerColor = PrimaryDark,
@@ -144,9 +136,7 @@ fun DetailScreen(filmId: String, navController: NavHostController) {
                 )
             }
 
-            else -> {
-                Text("No Detail Data")
-            }
+
         }
     }
 }

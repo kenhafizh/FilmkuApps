@@ -97,8 +97,8 @@ fun AppNavigationBar(
                     }
                 )
             ) { navBackStackEntry ->
-                val filmId = navBackStackEntry.arguments?.getString("filmId") ?: "0"
-                DetailScreen(filmId = filmId, navController = navController)
+//                val filmId = navBackStackEntry.arguments?.getString("filmId") ?: "0"
+                DetailScreen(navController = navController)
             }
         }
     }
