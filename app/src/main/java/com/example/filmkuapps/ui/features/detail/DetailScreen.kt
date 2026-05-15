@@ -34,7 +34,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -50,7 +49,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
@@ -58,7 +56,6 @@ import com.example.filmkuapps.R
 import com.example.filmkuapps.domain.model.MovieDetail
 import com.example.filmkuapps.ui.common.theme.Poppins
 import com.example.filmkuapps.ui.common.theme.PrimaryDark
-import com.example.filmkuapps.ui.features.home.MovieViewModel
 import com.example.filmkuapps.ui.nav.AppScreen
 
 @Composable
