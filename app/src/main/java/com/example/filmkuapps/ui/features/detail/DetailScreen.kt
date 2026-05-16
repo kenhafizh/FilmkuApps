@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
@@ -54,15 +55,21 @@ import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import com.example.filmkuapps.R
 import com.example.filmkuapps.domain.model.MovieDetail
+import com.example.filmkuapps.domain.model.Review
 import com.example.filmkuapps.ui.common.theme.Poppins
 import com.example.filmkuapps.ui.common.theme.PrimaryDark
 import com.example.filmkuapps.ui.nav.AppScreen
 
 @Composable
-fun DetailScreen(navController: NavHostController, viewModel: DetailMoviewViewModel = viewModel()) {
+fun DetailScreen(
+    navController: NavHostController,
+    detailViewModel: DetailMoviewViewModel = viewModel(),
+    reviewViewModel: ReviewMovieViewModel = viewModel()
+) {
     var selectedTabIndex by remember { mutableIntStateOf(0) } // Default to "Reviews" to match screenshot
     val tabs = listOf("About Movie", "Reviews", "Cast")
-    val detailState by viewModel.detailMoviesState.collectAsState()
+    val detailState by detailViewModel.detailMoviesState.collectAsState()
+    val reviewState by reviewViewModel.reviewMovieState.collectAsState()
 
     Scaffold(
         containerColor = PrimaryDark,
@@ -107,6 +114,7 @@ fun DetailScreen(navController: NavHostController, viewModel: DetailMoviewViewMo
                     CircularProgressIndicator(color = Color(0xFF0296E5))
                 }
             }
+
             is DetailMovieState.Error -> {
                 Box(
                     modifier = Modifier
@@ -121,15 +129,18 @@ fun DetailScreen(navController: NavHostController, viewModel: DetailMoviewViewMo
                     )
                 }
             }
+
             is DetailMovieState.Success -> {
                 val movie = (detailState as DetailMovieState.Success).movies
+
                 DetailMoviewContent(
                     movie = movie,
                     innerPadding = innerPadding,
                     tabs = tabs,
                     selectedTabIndex = selectedTabIndex,
                     onTabIndexChange = { selectedTabIndex = it },
-                    navController = navController
+                    navController = navController,
+                    reviewState = reviewState
                 )
             }
 
@@ -145,7 +156,8 @@ fun DetailMoviewContent(
     tabs: List<String>,
     selectedTabIndex: Int,
     onTabIndexChange: (Int) -> Unit,
-    navController: NavHostController
+    navController: NavHostController,
+    reviewState: ReviewMovieState
 ) {
     Column(
         modifier = Modifier
@@ -285,28 +297,85 @@ fun DetailMoviewContent(
                 )
 
             }
+
             1 -> {
-                Column(
-                    modifier = Modifier.padding(24.dp),
-                    verticalArrangement = Arrangement.spacedBy(24.dp)
-                ) {
-                    ReviewItem(
-                        name = "Iqbal Shafiq Rozaan",
-                        rating = "6.3",
-                        review = "From DC Comics comes the Suicide Squad, an antihero team of incarcerated supervillains who act as deniable assets for the United States government."
-                    )
-                    ReviewItem(
-                        name = "Iqbal Shafiq Rozaan",
-                        rating = "6.3",
-                        review = "From DC Comics comes the Suicide Squad, an antihero team of incarcerated supervillains who act as deniable assets for the United States government."
-                    )
+                when (reviewState) {
+                    is ReviewMovieState.Loading -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(innerPadding),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = Color(0xFF0296E5))
+                        }
+
+                    }
+
+                    is ReviewMovieState.Success -> {
+                        val reviews = (reviewState as ReviewMovieState.Success).movies
+                        if (reviews.isEmpty()) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(24.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "No reviews yet",
+                                    color = Color(0xFF929292),
+                                    fontFamily = Poppins,
+                                    fontSize = 14.sp
+                                )
+                            }
+
+                        } else {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 24.dp)
+                                    .padding(vertical = 16.dp),
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                reviews.forEach{ review ->
+                                    ReviewItem(
+                                        name = review.authorDetails.username,
+                                        rating = (review.authorDetails.rating ?: 0.0).toString(),
+                                        review = review.content,
+                                        profileImage = review.authorDetails.avatarPath?.let {
+                                            "https://image.tmdb.org/t/p/w45$it"
+                                        } ?: ""
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    is ReviewMovieState.Error -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Error: ${(reviewState as ReviewMovieState.Error).message}",
+                                color = Color.Red,
+                                fontFamily = Poppins,
+                                fontSize = 14.sp
+                            )
+                        }
+                    }
+
                 }
             }
+
             2 -> {
                 LazyVerticalGrid(
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
-                        .padding(top = 16.dp).height(400.dp),
+                        .padding(top = 16.dp)
+                        .height(400.dp),
                     columns = GridCells.Fixed(2),
                     verticalArrangement = Arrangement.spacedBy(24.dp),
                     horizontalArrangement = Arrangement.spacedBy(65.dp),
@@ -371,22 +440,33 @@ fun InfoDivider() {
 }
 
 @Composable
-fun ReviewItem(name: String, rating: String, review: String) {
+fun ReviewItem(name: String, rating: String = "-", review: String, profileImage: String = "") {
     Row(modifier = Modifier.fillMaxWidth()) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFF3A3F47)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.Default.Person,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(24.dp)
+            if (profileImage.isNotEmpty()) {
+                AsyncImage(
+                    model = profileImage,
+                    contentDescription = "Author Avatar",
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
                 )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF3A3F47)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Default.Person,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(

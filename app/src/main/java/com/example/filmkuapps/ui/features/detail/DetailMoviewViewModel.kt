@@ -17,8 +17,6 @@ sealed interface DetailMovieState {
 }
 
 class DetailMoviewViewModel(
-    // Gunakan AppModule sebagai default parameter
-//    private val getDetailMovieUseCase: DetailMoviesUseCase = AppModule.detailMoviesUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _detailMovieState = MutableStateFlow<DetailMovieState>(DetailMovieState.Loading)

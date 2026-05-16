@@ -1,8 +1,11 @@
 package com.example.filmkuapps.data.repository
 
 import com.example.filmkuapps.data.remote.api.ApiService
+import com.example.filmkuapps.data.remote.dto.MovieReviewResponseDto
 import com.example.filmkuapps.domain.model.Movie
 import com.example.filmkuapps.domain.model.MovieDetail
+import com.example.filmkuapps.domain.model.MoviewReviewResponse
+import com.example.filmkuapps.domain.model.Review
 import com.example.filmkuapps.domain.repository.MovieRepository
 
 class MovieRepositoryImpl(private val apiService: ApiService) : MovieRepository {
@@ -30,4 +33,11 @@ class MovieRepositoryImpl(private val apiService: ApiService) : MovieRepository 
         val response = apiService.getMovieDetail(movieId)
         return response.toDomain()
     }
+
+    override suspend fun getMoviewReview(movieId: Int): List<Review> {
+        val response = apiService.getMovieReviews(movieId)
+        return response.results.map { it.toDomain()}
+    }
+
+
 }
