@@ -1,10 +1,10 @@
 package com.example.filmkuapps.data.remote.api
 
+import com.example.filmkuapps.data.remote.dto.MovieCreditsDto
 import com.example.filmkuapps.data.remote.api.ApiPath.API_KEY
 import com.example.filmkuapps.data.remote.dto.MovieDetailResponse
 import com.example.filmkuapps.data.remote.dto.MovieResponse
 import com.example.filmkuapps.data.remote.dto.MovieReviewResponseDto
-import com.example.filmkuapps.domain.model.MoviewReviewResponse
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -51,4 +51,11 @@ interface ApiService {
         @Query("api_key") apiKey: String = API_KEY,
         @Query("language") language: String = "en-US"
     ): MovieReviewResponseDto
+
+    @GET("movie/{movie_id}/credits")
+    suspend fun getMoviecredits(
+        @Path("movie_id") movieId: Int,
+        @Query("api_key") apiKey: String = API_KEY,
+        @Query("language") language: String = "en-US"
+    ): MovieCreditsDto
 }

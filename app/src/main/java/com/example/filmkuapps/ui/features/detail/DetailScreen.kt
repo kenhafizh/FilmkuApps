@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -59,17 +60,24 @@ import com.example.filmkuapps.domain.model.Review
 import com.example.filmkuapps.ui.common.theme.Poppins
 import com.example.filmkuapps.ui.common.theme.PrimaryDark
 import com.example.filmkuapps.ui.nav.AppScreen
+import kotlin.div
+import kotlin.text.compareTo
+import kotlin.text.get
+import kotlin.times
+import kotlin.toString
 
 @Composable
 fun DetailScreen(
     navController: NavHostController,
     detailViewModel: DetailMoviewViewModel = viewModel(),
-    reviewViewModel: ReviewMovieViewModel = viewModel()
+    reviewViewModel: ReviewMovieViewModel = viewModel(),
+    creditViewModel: CreditMovieViewModel = viewModel() ,
 ) {
     var selectedTabIndex by remember { mutableIntStateOf(0) } // Default to "Reviews" to match screenshot
     val tabs = listOf("About Movie", "Reviews", "Cast")
     val detailState by detailViewModel.detailMoviesState.collectAsState()
     val reviewState by reviewViewModel.reviewMovieState.collectAsState()
+    val creditState by creditViewModel.creditMovieState.collectAsState()
 
     Scaffold(
         containerColor = PrimaryDark,
@@ -140,7 +148,8 @@ fun DetailScreen(
                     selectedTabIndex = selectedTabIndex,
                     onTabIndexChange = { selectedTabIndex = it },
                     navController = navController,
-                    reviewState = reviewState
+                    reviewState = reviewState,
+                    creditState = creditState
                 )
             }
 
@@ -157,164 +166,202 @@ fun DetailMoviewContent(
     selectedTabIndex: Int,
     onTabIndexChange: (Int) -> Unit,
     navController: NavHostController,
-    reviewState: ReviewMovieState
+    reviewState: ReviewMovieState,
+    creditState: CreditMovieState,
 ) {
-    Column(
+    LazyColumn(
         modifier = Modifier
             .padding(innerPadding)
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
     ) {
         // Banner & Poster section
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(300.dp)
-        ) {
-            // Banner
-            AsyncImage(
-                model = movie.backdropUrl,
-                contentDescription = null,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(210.dp)
-                    .clip(RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)),
-                contentScale = ContentScale.Crop
-            )
-
-            // Rating Badge
+        item {
             Box(
                 modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(bottom = 100.dp, end = 16.dp)
-                    .background(Color(0xAA252836), RoundedCornerShape(8.dp))
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                    .fillMaxWidth()
+                    .height(300.dp)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Default.Star,
-                        null,
-                        tint = Color(0xFFFFAD00),
-                        modifier = Modifier.size(16.dp)
+                AsyncImage(
+                    model = movie.backdropUrl,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(210.dp)
+                        .clip(RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)),
+                    contentScale = ContentScale.Crop
+                )
+
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(bottom = 100.dp, end = 16.dp)
+                        .background(Color(0xAA252836), RoundedCornerShape(8.dp))
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.Star,
+                            null,
+                            tint = Color(0xFFFFAD00),
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = movie.rating.toString(),
+                            color = Color(0xFFFFAD00),
+                            fontFamily = Poppins,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(horizontal = 24.dp)
+                ) {
+                    AsyncImage(
+                        model = movie.posterUrl,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .width(95.dp)
+                            .height(120.dp)
+                            .clip(RoundedCornerShape(16.dp)),
+                        contentScale = ContentScale.Crop
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = movie.rating.toString(),
-                        color = Color(0xFFFFAD00),
+                        text = movie.title,
+                        color = Color.White,
                         fontFamily = Poppins,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier
+                            .align(Alignment.CenterVertically)
+                            .padding(top = 16.dp)
                     )
                 }
             }
+        }
 
-            // Poster & Title Row
+        // Info Row
+        item {
             Row(
                 modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(horizontal = 24.dp)
+                    .fillMaxWidth()
+                    .padding(vertical = 24.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                AsyncImage(
-                    model = movie.posterUrl,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .width(95.dp)
-                        .height(120.dp)
-                        .clip(RoundedCornerShape(16.dp)),
-                    contentScale = ContentScale.Crop
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = movie.title,
-                    color = Color.White,
-                    fontFamily = Poppins,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier
-                        .align(Alignment.CenterVertically)
-                        .padding(top = 16.dp)
-                )
+                MovieInfoItem(Icons.Default.CalendarToday, movie.releaseDate.take(4))
+                InfoDivider()
+                MovieInfoItem(Icons.Default.AccessTime, movie.duration)
+                InfoDivider()
+                MovieInfoItem(Icons.Default.ConfirmationNumber, movie.genres.firstOrNull() ?: "Unknown")
             }
         }
 
-        // Info Row (Year | Duration | Genre)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 24.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            MovieInfoItem(Icons.Default.CalendarToday, movie.releaseDate.take(4))
-            InfoDivider()
-            MovieInfoItem(Icons.Default.AccessTime, movie.duration)
-            InfoDivider()
-            MovieInfoItem(Icons.Default.ConfirmationNumber, movie.genres.firstOrNull() ?: "Unknown")
-        }
-
         // Tabs
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp),
-            horizontalArrangement = Arrangement.spacedBy(24.dp),
-        ) {
-            tabs.forEachIndexed { index, title ->
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier
-                        .width(IntrinsicSize.Max)
-                        .clickable { onTabIndexChange(index) }
-                ) {
-                    Text(
-                        text = title,
-                        color = Color.White,
-                        fontSize = 14.sp,
-                        fontWeight = if (selectedTabIndex == index) FontWeight.SemiBold else FontWeight.Normal
-                    )
-                    if (selectedTabIndex == index) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(4.dp)
-                                .background(Color(0xFF3A3F47), RoundedCornerShape(2.dp))
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
+                horizontalArrangement = Arrangement.spacedBy(24.dp),
+            ) {
+                tabs.forEachIndexed { index, title ->
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .width(IntrinsicSize.Max)
+                            .clickable { onTabIndexChange(index) }
+                    ) {
+                        Text(
+                            text = title,
+                            color = Color.White,
+                            fontSize = 14.sp,
+                            fontWeight = if (selectedTabIndex == index) FontWeight.SemiBold else FontWeight.Normal
                         )
+                        if (selectedTabIndex == index) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(4.dp)
+                                    .background(Color(0xFF3A3F47), RoundedCornerShape(2.dp))
+                            )
+                        }
                     }
                 }
             }
         }
 
-        // Tab Content
-        when (selectedTabIndex) { // Reviews Tab
+        // ✅ Tab Content - Gunakan when LANGSUNG di LazyColumn scope
+        when (selectedTabIndex) {
             0 -> {
-                Text(
-                    text = movie.overview,
-                    modifier = Modifier.padding(24.dp),
-                    fontWeight = FontWeight.Light,
-//                    color = Color.White,
-                    fontSize = 12.sp,
-                )
-
+                // About Movie Tab
+                item {
+                    Text(
+                        text = movie.overview,
+                        modifier = Modifier.padding(24.dp),
+                        fontWeight = FontWeight.Light,
+                        fontSize = 12.sp,
+                    )
+                }
             }
 
             1 -> {
+                // Reviews Tab
                 when (reviewState) {
                     is ReviewMovieState.Loading -> {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(innerPadding),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(color = Color(0xFF0296E5))
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(100.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(color = Color(0xFF0296E5))
+                            }
                         }
-
                     }
 
                     is ReviewMovieState.Success -> {
                         val reviews = (reviewState as ReviewMovieState.Success).movies
                         if (reviews.isEmpty()) {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(24.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "No reviews yet",
+                                        color = Color(0xFF929292),
+                                        fontFamily = Poppins,
+                                        fontSize = 14.sp
+                                    )
+                                }
+                            }
+                        } else {
+                            // ✅ Gunakan items() langsung, bukan item { forEach }
+                            items(reviews.size) { index ->
+                                ReviewItem(
+                                    name = reviews[index].authorDetails.username,
+                                    rating = (reviews[index].authorDetails.rating ?: 0.0).toString(),
+                                    review = reviews[index].content,
+                                    profileImage = reviews[index].authorDetails.avatarPath?.let {
+                                        "https://image.tmdb.org/t/p/w45$it"
+                                    } ?: ""
+                                )
+                            }
+                        }
+                    }
+
+                    is ReviewMovieState.Error -> {
+                        item {
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -322,86 +369,136 @@ fun DetailMoviewContent(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "No reviews yet",
-                                    color = Color(0xFF929292),
+                                    text = "Error: ${(reviewState as ReviewMovieState.Error).message}",
+                                    color = Color.Red,
                                     fontFamily = Poppins,
                                     fontSize = 14.sp
                                 )
                             }
+                        }
+                    }
+                }
+            }
 
-                        } else {
-                            Column(
+            2 -> {
+                // Cast Tab
+                when (creditState) {
+                    is CreditMovieState.Loading -> {
+                        item {
+                            Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 24.dp)
-                                    .padding(vertical = 16.dp),
-                                verticalArrangement = Arrangement.spacedBy(16.dp)
+                                    .height(100.dp),
+                                contentAlignment = Alignment.Center
                             ) {
-                                reviews.forEach{ review ->
-                                    ReviewItem(
-                                        name = review.authorDetails.username,
-                                        rating = (review.authorDetails.rating ?: 0.0).toString(),
-                                        review = review.content,
-                                        profileImage = review.authorDetails.avatarPath?.let {
-                                            "https://image.tmdb.org/t/p/w45$it"
-                                        } ?: ""
-                                    )
+                                CircularProgressIndicator(color = Color(0xFF0296E5))
+                            }
+                        }
+                    }
+
+                    is CreditMovieState.Success -> {
+                        val creditData = (creditState as CreditMovieState.Success).movies
+                        items((creditData.size + 1) / 2) { rowIndex ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                val leftIndex = rowIndex * 2
+                                val rightIndex = leftIndex + 1
+
+                                // Left item
+                                if (leftIndex < creditData.size) {
+                                    Column(
+                                        modifier = Modifier
+                                            .weight(1f),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        AsyncImage(
+                                            model = "https://image.tmdb.org/t/p/w185${creditData[leftIndex].profilePath}",
+                                            contentDescription = null,
+                                            modifier = Modifier
+                                                .size(100.dp)
+                                                .clip(CircleShape),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            text = creditData[leftIndex].name,
+                                            color = Color.White,
+                                            textAlign = TextAlign.Center,
+                                            fontSize = 12.sp
+                                        )
+                                    }
+                                } else {
+                                    Spacer(modifier = Modifier.weight(1f))
+                                }
+
+                                // Right item
+                                if (rightIndex < creditData.size) {
+                                    Column(
+                                        modifier = Modifier
+                                            .weight(1f),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        if (creditData[rightIndex].profilePath == null) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(100.dp)
+                                                    .clip(CircleShape)
+                                                    .background(Color(0xFF3A3F47)),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Icon(
+                                                    Icons.Default.Person,
+                                                    contentDescription = null,
+                                                    tint = Color.White,
+                                                    modifier = Modifier.size(70.dp)
+                                                )
+                                            }
+                                        } else {
+                                            AsyncImage(
+                                                model = "https://image.tmdb.org/t/p/w185${creditData[rightIndex].profilePath}",
+                                                contentDescription = null,
+                                                modifier = Modifier
+                                                    .size(100.dp)
+                                                    .clip(CircleShape),
+                                                contentScale = ContentScale.Crop
+                                            )
+                                        }
+
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            text = creditData[rightIndex].name,
+                                            color = Color.White,
+                                            textAlign = TextAlign.Center,
+                                            fontSize = 12.sp
+                                        )
+                                    }
+                                } else {
+                                    Spacer(modifier = Modifier.weight(1f))
                                 }
                             }
                         }
                     }
 
-                    is ReviewMovieState.Error -> {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(24.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "Error: ${(reviewState as ReviewMovieState.Error).message}",
-                                color = Color.Red,
-                                fontFamily = Poppins,
-                                fontSize = 14.sp
-                            )
-                        }
-                    }
-
-                }
-            }
-
-            2 -> {
-                LazyVerticalGrid(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .padding(top = 16.dp)
-                        .height(400.dp),
-                    columns = GridCells.Fixed(2),
-                    verticalArrangement = Arrangement.spacedBy(24.dp),
-                    horizontalArrangement = Arrangement.spacedBy(65.dp),
-                    userScrollEnabled = false
-                ) {
-                    items(12) { index ->
-                        val filmId = (index + 1).toString()
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.img_cover),
-                                contentDescription = "Movie Image",
+                    is CreditMovieState.Error -> {
+                        item {
+                            Box(
                                 modifier = Modifier
-                                    .width(120.dp)
-                                    .height(123.dp)
-                                    .clip(CircleShape)
-                                    .clickable {
-                                        navController.navigate(AppScreen.detailRoute(filmId))
-                                    },
-                                contentScale = ContentScale.Crop
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(text = "Tom Holland")
+                                    .fillMaxWidth()
+                                    .padding(24.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "Error: ${(creditState as CreditMovieState.Error).message}",
+                                    color = Color.Red,
+                                    fontFamily = Poppins,
+                                    fontSize = 14.sp
+                                )
+                            }
                         }
-
                     }
                 }
             }
@@ -441,7 +538,7 @@ fun InfoDivider() {
 
 @Composable
 fun ReviewItem(name: String, rating: String = "-", review: String, profileImage: String = "") {
-    Row(modifier = Modifier.fillMaxWidth()) {
+    Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp)) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             if (profileImage.isNotEmpty()) {
                 AsyncImage(

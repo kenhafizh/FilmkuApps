@@ -5,6 +5,7 @@ import com.example.filmkuapps.data.remote.api.ApiPath.BASE_URL
 import com.example.filmkuapps.data.remote.api.ApiService
 import com.example.filmkuapps.data.repository.MovieRepositoryImpl
 import com.example.filmkuapps.domain.repository.MovieRepository
+import com.example.filmkuapps.domain.usecase.CreditsMoviesUseCase
 import com.example.filmkuapps.domain.usecase.DetailMoviesUseCase
 import com.example.filmkuapps.domain.usecase.GetNowPlayingMoviesUseCase
 import com.example.filmkuapps.domain.usecase.GetPopularMoviesUseCase
@@ -88,5 +89,9 @@ object AppModule {
 
     val reviewMoviesUseCase: ReviewMoviesUseCase by lazy {
         ReviewMoviesUseCase(repository = movieRepository)
+    }
+
+    val creditMoviesUseCase: CreditsMoviesUseCase by lazy {
+        CreditsMoviesUseCase(repository = movieRepository)
     }
 }
