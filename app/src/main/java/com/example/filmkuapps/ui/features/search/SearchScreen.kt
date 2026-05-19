@@ -26,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,21 +39,26 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil3.compose.AsyncImage
 import com.example.filmkuapps.R
+import com.example.filmkuapps.domain.model.MovieSearch
 import com.example.filmkuapps.ui.common.theme.PrimaryDark
+import com.example.filmkuapps.ui.utils.formatDate
+import kotlin.toString
 
 @Composable
-fun SearchScreen() {
+fun SearchScreen(searchViewModel: SearchViewModel = viewModel()) {
     var searchQuery by remember { mutableStateOf("") }
+    val results by searchViewModel.results.collectAsState()
+    val isLoading by searchViewModel.isLoading.collectAsState()
+    val error by searchViewModel.error.collectAsState()
 
-    val movieList = listOf(
-        MovieModel("Sang Pemimpi", "9.5", "2022", "120m", "Drama", R.drawable.img_cover),
-        MovieModel("Laskar Pelangi", "9.8", "2008", "124m", "Adventure", R.drawable.img_cover),
-        MovieModel("Interstellar", "9.0", "2014", "169m", "Sci-Fi", R.drawable.img_cover),
-        MovieModel("The Dark Knight", "9.1", "2008", "152m", "Action", R.drawable.img_cover)
-    )
+    var localQuery by remember { mutableStateOf("") }
+
 
     Scaffold(
         containerColor = PrimaryDark
@@ -81,9 +87,12 @@ fun SearchScreen() {
 
             // Search Bar
             TextField(
-                value = searchQuery,
+                value = localQuery,
                 singleLine = true,
-                onValueChange = { searchQuery = it },
+                onValueChange = { q ->
+                    localQuery = q
+                    searchViewModel.setQuery(q)
+                },
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color(0xFF67686D),
                     unfocusedContainerColor = Color(0xFF67686D),
@@ -108,20 +117,40 @@ fun SearchScreen() {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
             ) {
-                items(movieList) { movie ->
-                    SearchMovieWidget(movie = movie)
+                if (isLoading) {
+                    item {
+
+                    }
                 }
+                if (results.isEmpty() && localQuery.isNotBlank() && !isLoading) {
+                    item {
+                        Text("No results", color = Color.Gray, modifier = Modifier.padding(16.dp))
+                    }
+                } else {
+                    items(results) { movieSearch ->
+                        val movieModel = MovieModel(
+                            title = movieSearch.title,
+                            rating = movieSearch.voteAverage.toString(),
+                            year = movieSearch.releaseDate.takeIf { it.isNotEmpty() } ?: "-",
+                            duration = "-", // not available in search results
+                            genre = if (movieSearch.genreIds.isNotEmpty()) movieSearch.genreIds.first().toString() else "-",
+                            imageRes = R.drawable.img_cover
+                        )
+                        SearchMovieWidget(movie = movieSearch)
+                    }
+                }
+
             }
         }
     }
 }
 
 @Composable
-fun SearchMovieWidget(movie: MovieModel) {
+fun SearchMovieWidget(movie: MovieSearch) {
     Row(modifier = Modifier.padding(top = 24.dp)) {
-        Image(
-            painter = painterResource(id = R.drawable.img_cover),
-            contentDescription = "Movie Image",
+        AsyncImage(
+            model = movie.posterPath?.let { "https://image.tmdb.org/t/p/w185$it" } ?: R.drawable.img_cover,
+            contentDescription = movie.title,
             modifier = Modifier
                 .width(100.dp)
                 .height(140.dp)
@@ -136,29 +165,18 @@ fun SearchMovieWidget(movie: MovieModel) {
                 fontWeight = FontWeight.W500,
                 fontSize = 16.sp
             )
-            MovieSearchItem(
-                Icons.Outlined.StarRate ,
-                contentDescription = "Rating",
-                text = movie.rating,
-                fontWeight = FontWeight.SemiBold,
-                color = Color(0xFFFFA500)
+            Text(
+                text = movie.overview,
+                modifier = Modifier.padding(bottom = 8.dp),
+                fontWeight = FontWeight.Normal,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                fontSize = 12.sp
             )
             MovieSearchItem(
                 Icons.Outlined.DateRange,
                 contentDescription = "Release Date",
-                text = movie.year,
-                color = Color.White
-            )
-            MovieSearchItem(
-                Icons.Outlined.AccessTime,
-                contentDescription = "Duration",
-                text = movie.duration,
-                color = Color.White
-            )
-            MovieSearchItem(
-                Icons.Outlined.LocalActivity,
-                contentDescription = "Genre",
-                text = movie.genre,
+                text = movie.releaseDate.formatDate(outputFormat = "EEEE, d MMMM yyyy"),
                 color = Color.White
             )
         }
@@ -166,7 +184,13 @@ fun SearchMovieWidget(movie: MovieModel) {
 }
 
 @Composable
-fun MovieSearchItem (icon: ImageVector, contentDescription: String, text: String, color: Color, fontWeight: FontWeight = FontWeight.Normal) {
+fun MovieSearchItem(
+    icon: ImageVector,
+    contentDescription: String,
+    text: String,
+    color: Color,
+    fontWeight: FontWeight = FontWeight.Normal
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
     ) {

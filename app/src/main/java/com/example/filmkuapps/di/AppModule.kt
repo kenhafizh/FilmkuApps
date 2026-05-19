@@ -12,6 +12,7 @@ import com.example.filmkuapps.domain.usecase.GetPopularMoviesUseCase
 import com.example.filmkuapps.domain.usecase.GetTopRatedMoviesUseCase
 import com.example.filmkuapps.domain.usecase.GetUpcomingMoviesUseCase
 import com.example.filmkuapps.domain.usecase.ReviewMoviesUseCase
+import com.example.filmkuapps.domain.usecase.SearchMoviesUseCase
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.json.JSONArray
@@ -93,5 +94,9 @@ object AppModule {
 
     val creditMoviesUseCase: CreditsMoviesUseCase by lazy {
         CreditsMoviesUseCase(repository = movieRepository)
+    }
+
+    val searchMoviesUseCase: SearchMoviesUseCase by lazy {
+        SearchMoviesUseCase(repository = movieRepository)
     }
 }

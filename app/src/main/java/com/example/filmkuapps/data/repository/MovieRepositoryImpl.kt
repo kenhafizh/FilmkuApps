@@ -5,6 +5,8 @@ import com.example.filmkuapps.data.remote.dto.MovieReviewResponseDto
 import com.example.filmkuapps.domain.model.Movie
 import com.example.filmkuapps.domain.model.MovieCast
 import com.example.filmkuapps.domain.model.MovieDetail
+import com.example.filmkuapps.domain.model.MovieSearch
+import com.example.filmkuapps.domain.model.MovieSearchResponse
 import com.example.filmkuapps.domain.model.MoviewReviewResponse
 import com.example.filmkuapps.domain.model.Review
 import com.example.filmkuapps.domain.repository.MovieRepository
@@ -30,6 +32,7 @@ class MovieRepositoryImpl(private val apiService: ApiService) : MovieRepository 
         return response.results.map { it.toDomain() }
     }
 
+
     override suspend fun getMovieDetail(movieId: Int): MovieDetail {
         val response = apiService.getMovieDetail(movieId)
         return response.toDomain()
@@ -45,5 +48,9 @@ class MovieRepositoryImpl(private val apiService: ApiService) : MovieRepository 
         return response.cast.map { it.toDomain() }
     }
 
+    override suspend fun getSearchMovie(keywords: String): List<MovieSearch> {
+        val response = apiService.searchMovies(keywords)
+        return response.results.map { it.toDomain() }
+    }
 
 }

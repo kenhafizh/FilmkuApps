@@ -69,18 +69,18 @@ fun WatchlistScreen(navController: NavController) {
             }
         }
     ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(
-                    horizontal = 24.dp,
-                ),
-        ) {
-            items(movieList) { movie ->
-                SearchMovieWidget(movie = movie)
-            }
-        }
+//        LazyColumn(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .padding(innerPadding)
+//                .padding(
+//                    horizontal = 24.dp,
+//                ),
+//        ) {
+//            items(movieList) { movie ->
+//                SearchMovieWidget(movie = movie)
+//            }
+//        }
     }
 }
 
